@@ -10,7 +10,7 @@ if ((Get-Module Pode) -ne $null)
     Remove-Module Pode
 }
 
-Import-Module Pode -ErrorAction Stop
+Import-Module ..\Pode\src\Pode.psm1
 
 
 # setup grape server on passed port

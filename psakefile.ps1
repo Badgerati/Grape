@@ -8,7 +8,14 @@ $fontsPath = './public/libs/fonts/'
 
 # install required yarn packages
 Task Build {
-    yarn install --force --flat
+    if ((Get-Module Pode) -ne $null)
+    {
+        Remove-Module Pode
+    }
+
+    Import-Module ..\Pode\src\Pode.psm1
+
+    pode install
 
     if (!(Test-Path $scriptsPath))
     {
@@ -29,22 +36,22 @@ Task Build {
 # load yarn libraries
 Task Libraries -Depends Build {
     # jquery
-    Copy-Item -Path './node_modules/jquery/dist/jquery.min.js' -Destination $scriptsPath -Force | Out-Null
+    Copy-Item -Path './pode_modules/jquery/dist/jquery.min.js' -Destination $scriptsPath -Force | Out-Null
 
     # moment
-    Copy-Item -Path './node_modules/moment/min/moment.min.js' -Destination $scriptsPath -Force | Out-Null
+    Copy-Item -Path './pode_modules/moment/min/moment.min.js' -Destination $scriptsPath -Force | Out-Null
 
     # validator
-    Copy-Item -Path './node_modules/validator/validator.min.js' -Destination $scriptsPath -Force | Out-Null
+    Copy-Item -Path './pode_modules/validator/validator.min.js' -Destination $scriptsPath -Force | Out-Null
 
     # bootstrap
-    Copy-Item -Path './node_modules/bootstrap/dist/css/*.min.css' -Destination $cssPath -Force | Out-Null
-    Copy-Item -Path './node_modules/bootstrap/dist/js/*.min.js' -Destination $scriptsPath -Force | Out-Null
-    Copy-Item -Path './node_modules/bootstrap/dist/fonts/*' -Destination $fontsPath -Force | Out-Null
+    Copy-Item -Path './pode_modules/bootstrap/dist/css/*.min.css' -Destination $cssPath -Force | Out-Null
+    Copy-Item -Path './pode_modules/bootstrap/dist/js/*.min.js' -Destination $scriptsPath -Force | Out-Null
+    Copy-Item -Path './pode_modules/bootstrap/dist/fonts/*' -Destination $fontsPath -Force | Out-Null
 
     # bootstrap-select
-    Copy-Item -Path './node_modules/bootstrap-select/dist/css/*.min.css' -Destination $cssPath -Force | Out-Null
-    Copy-Item -Path './node_modules/bootstrap-select/dist/js/*.min.js' -Destination $scriptsPath -Force | Out-Null
+    Copy-Item -Path './pode_modules/bootstrap-select/dist/css/*.min.css' -Destination $cssPath -Force | Out-Null
+    Copy-Item -Path './pode_modules/bootstrap-select/dist/js/*.min.js' -Destination $scriptsPath -Force | Out-Null
 }
 
 # all done

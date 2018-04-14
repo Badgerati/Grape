@@ -33,6 +33,7 @@ build/Release
 
 # Dependency directories
 node_modules
+pode_modules
 jspm_packages
 bower_components
 public/libs
