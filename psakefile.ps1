@@ -8,7 +8,7 @@ $fontsPath = './public/libs/fonts/'
 
 # install required yarn packages
 Task Build {
-    yarn install --force
+    yarn install --force --flat
 
     if (!(Test-Path $scriptsPath))
     {
