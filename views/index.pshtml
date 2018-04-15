@@ -1,7 +1,9 @@
 <html>
-    $(include includes/head.pshtml)
+    $(include shared/head.pshtml)
 
     <body>
+        $(include shared/nav.pshtml)
+
         <h2>Hello, world!</h2>
     </body>
 </html>
