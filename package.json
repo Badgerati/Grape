@@ -3,18 +3,19 @@
     "version": "0.9.0",
     "main": "./index.ps1",
     "scripts": {
-        "start": "psake; ./index.ps1",
+        "start": "./index.ps1",
         "install": "yarn install --force --ignore-scripts --modules-folder pode_modules",
-        "test": "psake; invoke-pester ./tests/*.ps1",
+        "test": "invoke-pester ./tests/*.ps1",
         "build": "psake"
     },
     "dependencies": {
-        "bootstrap": "3.3.7",
+        "bootstrap": "^4.1.0",
+        "popper.js": "1.14.0",
         "bootstrap-select": "^1.12.4",
         "jquery": "^3.3.1",
         "lodash": "^4.17.5",
         "moment": "^2.22.0",
-        "validator": "^9.4.1"
+        "validator": "^8.1.0"
     },
     "author": "Matthew Kelly (Badgerati)",
     "license": "MIT"

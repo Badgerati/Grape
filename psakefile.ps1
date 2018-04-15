@@ -1,6 +1,5 @@
 $scriptsPath = './public/libs/scripts/'
 $cssPath = './public/libs/css/'
-$fontsPath = './public/libs/fonts/'
 
 ########################################
 # Tasks
@@ -26,11 +25,6 @@ Task Build {
     {
         New-Item -Path $cssPath -ItemType Directory -Force | Out-Null
     }
-
-    if (!(Test-Path $fontsPath))
-    {
-        New-Item -Path $fontsPath -ItemType Directory -Force | Out-Null
-    }
 }
 
 # load yarn libraries
@@ -47,11 +41,13 @@ Task Libraries -Depends Build {
     # bootstrap
     Copy-Item -Path './pode_modules/bootstrap/dist/css/*.min.css' -Destination $cssPath -Force | Out-Null
     Copy-Item -Path './pode_modules/bootstrap/dist/js/*.min.js' -Destination $scriptsPath -Force | Out-Null
-    Copy-Item -Path './pode_modules/bootstrap/dist/fonts/*' -Destination $fontsPath -Force | Out-Null
 
     # bootstrap-select
     Copy-Item -Path './pode_modules/bootstrap-select/dist/css/*.min.css' -Destination $cssPath -Force | Out-Null
     Copy-Item -Path './pode_modules/bootstrap-select/dist/js/*.min.js' -Destination $scriptsPath -Force | Out-Null
+
+    # popper
+    Copy-Item -Path './pode_modules/popper.js/dist/*.min.js' -Destination $scriptsPath -Force | Out-Null
 }
 
 # all done
