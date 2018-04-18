@@ -1,5 +1,5 @@
 <html>
-    $(include shared/head.pshtml)
+    $(include shared/head.pshtml $data)
 
     <body>
         $(include shared/nav.pshtml)

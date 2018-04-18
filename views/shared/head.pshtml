@@ -3,7 +3,7 @@
     <meta http-equiv='X-UA-Compatible' content='IE=edge' />
     <meta name='viewport' content='width=device-width initial-scale=1' />
 
-    <title>Grape</title>
+    <title>Grape $("bill")</title>
 
     <script src='/libs/scripts/jquery.min.js' type='text/javascript'></script>
     <script src='/libs/scripts/moment.min.js' type='text/javascript'></script>
@@ -11,12 +11,14 @@
     <script src='/libs/scripts/bootstrap.min.js' type='text/javascript'></script>
     <script src='/libs/scripts/bootstrap.bundle.min.js' type='text/javascript'></script>
     <script src='/libs/scripts/bootstrap-select.min.js' type='text/javascript'></script>
-    
+
     <link href='/libs/css/bootstrap.min.css' rel='stylesheet' type='text/css' />
     <link href='/libs/css/bootstrap-grid.min.css' rel='stylesheet' type='text/css' />
     <link href='/libs/css/bootstrap-reboot.min.css' rel='stylesheet' type='text/css' />
     <link href='/libs/css/bootstrap-select.min.css' rel='stylesheet' type='text/css' />
-    
+
     <link href='/custom/css/pulse.min.css' rel='stylesheet' type='text/css' />
     <link href='/custom/css/grape.css' rel='stylesheet' type='text/css' />
+
+    <script src='/custom/scripts/grape.$($data.pagename).js' type='text/javascript'></script>
 </head>

@@ -77,6 +77,7 @@ DIRECTORY STRUCTURE
 NOTES
 
 https://bootswatch.com/pulse/
+https://yarnpkg.com/en/
 
 * How to manage steps in the Grapefile?
 * Have an agent that can auto-clean-up completed workspaces (if enabled on job)
