@@ -1,0 +1,9 @@
+<html>
+    $(include shared/head $data)
+
+    <body>
+        $(include shared/nav)
+
+        <h2>Hello, world!</h2>
+    </body>
+</html>

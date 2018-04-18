@@ -1,9 +1,0 @@
-<html>
-    $(include shared/head.pshtml $data)
-
-    <body>
-        $(include shared/nav.pshtml)
-
-        <h2>Hello, world!</h2>
-    </body>
-</html>

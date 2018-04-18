@@ -1,5 +1,5 @@
 # dashboard
-Add-PodeRoute GET '/' {
+route get '/' {
     param($session)
 
     # get list of jobs
@@ -9,7 +9,7 @@ Add-PodeRoute GET '/' {
 
 
 # jobs (just dashboard)
-Add-PodeRoute GET '/jobs' {
+route get '/jobs' {
     param($session)
 
     # get list of jobs
@@ -19,19 +19,19 @@ Add-PodeRoute GET '/jobs' {
 
 
 # create a new job
-Add-PodeRoute GET '/jobs/new' {
+route get '/jobs/new' {
     param($session)
     Write-ViewResponse 'jobs/new'
 }
 
 
 # settings
-Add-PodeRoute GET '/manage' {
+route get '/manage' {
     param($session)
 }
 
 
 # about
-Add-PodeRoute GET '/about' {
+route get '/about' {
     param($session)
 }

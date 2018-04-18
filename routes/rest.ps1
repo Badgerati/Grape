@@ -1,4 +1,4 @@
 # get list of all jobs
-Add-PodeRoute GET '/api/jobs' {
+route get '/api/jobs' {
     param($session)
 }
