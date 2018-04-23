@@ -1,9 +1,9 @@
 {
     "name": "grape",
     "version": "0.9.0",
-    "main": "./index.ps1",
+    "main": "./grape.site.ps1",
     "scripts": {
-        "start": "./index.ps1",
+        "start": "./grape.site.ps1",
         "install": "yarn install --force --ignore-scripts --modules-folder pode_modules",
         "test": "invoke-pester ./tests/*.ps1",
         "build": "psake"

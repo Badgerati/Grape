@@ -34,24 +34,24 @@ PAGES
 
 API
 
-/api/v1/jobs                                            <- POST     <- create new job
-                                                         - GET      <- returns a list of jobs, with some filter/limit
+/api/jobs                                            <- POST     <- create new job
+                                                      - GET      <- returns a list of jobs, with some filter/limit
 
-/api/v1/jobs/<jobId>                                    <- GET      <- returns job details, and last x runs or x branches
-                                                         - DELETE   <- deletes the job
-                                                         - PUT      <- updates the job
+/api/jobs/<jobId>                                    <- GET      <- returns job details, and last x runs or x branches
+                                                      - DELETE   <- deletes the job
+                                                      - PUT      <- updates the job
 
-/api/v1/jobs/<jobId>/runs                               <- POST     <- starts a new run for the job, or scan a repo for updated/new branches
+/api/jobs/<jobId>/runs                               <- POST     <- starts a new run for the job, or scan a repo for updated/new branches
 
-/api/v1/jobs/<jobId>/runs/<runId>                       <- GET      <- returns run details
-                                                         - DELETE   <- if running, forces the run to stop
+/api/jobs/<jobId>/runs/<runId>                       <- GET      <- returns run details
+                                                      - DELETE   <- if running, forces the run to stop
 
-/api/v1/jobs/<jobId>/branches/<branchId>                <- GET      <- returns branch details, and last x runs
+/api/jobs/<jobId>/branches/<branchId>                <- GET      <- returns branch details, and last x runs
 
-/api/v1/jobs/<jobId>/branches/<branchId>/runs           <- POST     <- starts a new run for the branch
+/api/jobs/<jobId>/branches/<branchId>/runs           <- POST     <- starts a new run for the branch
 
-/api/v1/jobs/<jobId>/branches/<branchId>/runs/<runId>   <- GET      <- returns run details
-                                                         - DELETE   <- if running, forces the run to stop
+/api/jobs/<jobId>/branches/<branchId>/runs/<runId>   <- GET      <- returns run details
+                                                      - DELETE   <- if running, forces the run to stop
 
 
 
@@ -67,10 +67,12 @@ DIRECTORY STRUCTURE
               /branches/<branchId>/config.json
                                   /runs/<runId>/config.json
                                                /output.txt
+      /jobs.json
 
 ./workspaces/<jobId>/
                     /<runId>/ (split by runId on a normal job if multiple can run at once - otherwise all runs share one workspace [top level])
                     /<branchId>/<runId> (all multi-branch jobs are parallel so all split by runId)
+          ??/workspaces.json
 
 
 

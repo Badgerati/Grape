@@ -4,6 +4,18 @@
     <body>
         $(include shared/nav)
 
-        <h2>Hello, world!</h2>
+        <div class='container'>
+            <div class='row'>
+                <div class='col-md-1'>
+                    bob
+                </div>
+                <div class='col-md-11'>
+                    billy
+                </div>
+            </div>
+        </div>
+
+
+
     </body>
 </html>
