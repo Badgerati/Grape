@@ -1,16 +1,17 @@
 
-$Global:_jobsPath = './jobs/jobs.json'
-$Global:_jobsConfig = $null
+#$Global:_jobsPath = './jobs/jobs.json'
+#$Global:_jobsConfig = $null
+#$Global:_jobConfig = $null
 
-function Global:Get-JobsConfig {
-    if ($Global:_jobsConfig -eq $null) {
-        $Global:_jobsConfig = Get-Content $Global:_jobsPath -Force | ConvertFrom-Json
-    }
-}
+#function Global:Get-JobsConfig {
+#    if ($Global:_jobsConfig -eq $null) {
+#        $Global:_jobsConfig = Get-Content $Global:_jobsPath -Force | ConvertFrom-Json
+#    }
+#}
 
-function Global:Write-JobsConfig {
-    $Global:_jobsConfig | ConvertTo-Json | Out-File -FilePath $Global:_jobsPath -Encoding utf8 -Force | Out-Null
-}
+#function Global:Write-JobsConfig {
+#    $Global:_jobsConfig | ConvertTo-Json | Out-File -FilePath $Global:_jobsPath -Encoding utf8 -Force | Out-Null
+#}
 
 
 # get list of all jobs
@@ -24,20 +25,18 @@ route get '/api/jobs' {
     }
 
     try {
-        Global:Get-JobsConfig
+        #Global:Get-JobsConfig
 
         # read in the jobs json
-        $jobs = $Global:_jobsConfig.jobs
+        $jobs = (Get-JobOverviewFile).jobs # $Global:_jobsConfig.jobs
         $count = ($jobs | Measure-Object).Count
 
         # if it's not empty, sort by name and limit results if supplied
-        if ($count -gt 0)
-        {
-            $jobs = $jobs | Sort-Object name 
+        if ($count -gt 0) {
+            $jobs = $jobs | Sort-Object name
 
             $limit = [int](?? $session.Query['limit'] '-1')
-            if ($limit -gt -1)
-            {
+            if ($limit -gt -1) {
                 $jobs = $jobs | Select-Object -First $limit
             }
         }
@@ -64,18 +63,20 @@ route post '/api/jobs' {
     }
 
     try {
-        Global:Get-JobsConfig
+        #Global:Get-JobsConfig
 
         $name = $session.Data.name
         $desc = $session.Data.description
 
-        $job = @{
-            'name' = $name;
-            'description' = $desc;
-        }
+        $job = New-JobConfig $name $desc
 
-        $Global:_jobsConfig.jobs += $job
-        Write-JobsConfig
+        #$job = @{
+        #    'name' = $name;
+        #    'description' = $desc;
+        #}
+
+        #$Global:_jobsConfig.jobs += $job
+        #Write-JobsConfig
 
         $result.job = $job
 

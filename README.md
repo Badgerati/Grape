@@ -11,8 +11,8 @@
 
 PAGES
 
-<jobId>       =   job name, lowercase and hyphenated/underscored
-<branchId>    =   branch name, lowercase and hyphenated (slashes are hyphens)
+<jobId>       = 12 random chars   =   job name: lowercase and hyphenated/underscored
+<branchId>    = 12 random chars   =   branch name: lowercase and hyphenated (slashes are hyphens)
 
 /                                                   <- dashboard
 /manage                                             <- manage settings of grape
@@ -62,9 +62,12 @@ DIRECTORY STRUCTURE
 ./grape.ps1
 
 ./jobs/<jobId>/config.json
+              /runs.json
+              /branches.json
               /runs/<runId>/config.json
                            /output.txt
               /branches/<branchId>/config.json
+                                  /runs.json
                                   /runs/<runId>/config.json
                                                /output.txt
       /jobs.json
@@ -73,6 +76,66 @@ DIRECTORY STRUCTURE
                     /<runId>/ (split by runId on a normal job if multiple can run at once - otherwise all runs share one workspace [top level])
                     /<branchId>/<runId> (all multi-branch jobs are parallel so all split by runId)
           ??/workspaces.json
+
+
+
+OBJECTS
+
+-- "jobs.json" object - only needs the quick info for loading a page
+
+```json
+"jobs": [
+    {
+        "id": "<jobId>",
+        "name": "core website",
+        "type": "single", // or multi
+        "status": "success", // or queued, running, failed, disabled, aborted, or none
+        "duration": "<milliseconds>",
+        "run": {
+            "last": "2018-04-24 19:27:02.000"
+        }
+    }
+]
+```
+
+-- "config.json" for a job - more info, like grapefile etc
+
+```json
+{
+    "id": "<jobId>",
+    "name": "core website",
+    "description": "",
+    "created": "",
+    "updated": "",
+    "type": "single",
+    "status": "success",
+    "duration": "<milliseconds>",
+    "grapefile": "", // path to file, or blank for ./Grapefile default
+    "repo": {
+        "url": "",
+        "branch": "", // if type is multi, this is empty
+    },
+    "run": {
+        "schedule": "", // cronjob format, or empty if no schedule
+        "last": "2018-04-24 19:27:02.000",
+        "next": "2018-04-24 19:28:02.000"
+    }
+}
+```
+
+-- "runs.json"
+
+```json
+"runs": [
+    {
+        "id": 1,
+        "start": "<date>",
+        "end": "<date>",
+        "duration": "<milliseconds>",
+        "status": "success"
+    }
+]
+```
 
 
 

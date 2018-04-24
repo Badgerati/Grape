@@ -7,8 +7,7 @@ $cssPath = './public/libs/css/'
 
 # install required yarn packages
 Task Build {
-    if ((Get-Module Pode) -ne $null)
-    {
+    if ((Get-Module Pode) -ne $null) {
         Remove-Module Pode
     }
 
@@ -16,13 +15,11 @@ Task Build {
 
     pode install
 
-    if (!(Test-Path $scriptsPath))
-    {
+    if (!(Test-Path $scriptsPath)) {
         New-Item -Path $scriptsPath -ItemType Directory -Force | Out-Null
     }
 
-    if (!(Test-Path $cssPath))
-    {
+    if (!(Test-Path $cssPath)) {
         New-Item -Path $cssPath -ItemType Directory -Force | Out-Null
     }
 }
