@@ -1,19 +1,3 @@
-
-#$Global:_jobsPath = './jobs/jobs.json'
-#$Global:_jobsConfig = $null
-#$Global:_jobConfig = $null
-
-#function Global:Get-JobsConfig {
-#    if ($Global:_jobsConfig -eq $null) {
-#        $Global:_jobsConfig = Get-Content $Global:_jobsPath -Force | ConvertFrom-Json
-#    }
-#}
-
-#function Global:Write-JobsConfig {
-#    $Global:_jobsConfig | ConvertTo-Json | Out-File -FilePath $Global:_jobsPath -Encoding utf8 -Force | Out-Null
-#}
-
-
 # get list of all jobs
 route get '/api/jobs' {
     param($session)
@@ -25,10 +9,8 @@ route get '/api/jobs' {
     }
 
     try {
-        #Global:Get-JobsConfig
-
         # read in the jobs json
-        $jobs = (Get-JobOverviewFile).jobs # $Global:_jobsConfig.jobs
+        $jobs = (Get-JobOverviewFile).jobs
         $count = ($jobs | Measure-Object).Count
 
         # if it's not empty, sort by name and limit results if supplied
@@ -56,6 +38,7 @@ route get '/api/jobs' {
 # create a new job
 route post '/api/jobs' {
     param($session)
+    $data = $session.Data
 
     $result = @{
         'error' = $null;
@@ -63,21 +46,7 @@ route post '/api/jobs' {
     }
 
     try {
-        #Global:Get-JobsConfig
-
-        $name = $session.Data.name
-        $desc = $session.Data.description
-
-        $job = New-JobConfig $name $desc
-
-        #$job = @{
-        #    'name' = $name;
-        #    'description' = $desc;
-        #}
-
-        #$Global:_jobsConfig.jobs += $job
-        #Write-JobsConfig
-
+        $job = New-JobConfig $data
         $result.job = $job
 
         # write new job back
@@ -87,11 +56,48 @@ route post '/api/jobs' {
         $result.error = $_.Exception.Message
         Write-JsonResponse -Value $result
     }
+}
 
+# get details about a specific job
+route get '/api/jobs/:jobId' {
+    param($session)
+    $jobId = $session.Parameters['jobId']
 
-    #    * job name/description
-    #    * job parameters
-    #    * schedule (or multi-branch)
-    #    * git repo (and branch)
-    #    * Grapefile name/path (or blank for default ".\Grapefile")
+    $result = @{
+        'error' = $null;
+        'job' = @{};
+    }
+
+    try {
+        # get the job config
+        $job = Get-JobFile $jobId
+        $result.job = $job
+
+        # write job back
+        Write-JsonResponse -Value $result
+    }
+    catch {
+        $result.error = $_.Exception.Message
+        Write-JsonResponse -Value $result
+    }
+}
+
+# delete the specified job
+route delete '/api/jobs/:jobId' {
+    param($session)
+    $jobId = $session.Parameters['jobId']
+}
+
+# update the specified job
+route put '/api/jobs/:jobId' {
+    param($session)
+    $jobId = $session.Parameters['jobId']
+}
+
+# start a new run for the passed job
+route post '/api/jobs/:jobId/runs' {
+    param($session)
+    $jobId = $session.Parameters['jobId']
+
+    # validate job, and then add to queue
 }

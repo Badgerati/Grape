@@ -4,36 +4,41 @@ function Get-JobsPath {
 
 function Get-JobOverviewObject {
     return @{
-        "id" = "";
-        "name" = "";
-        "type" = "";
-        "status" = 'none';
-        "duration" = 0;
-        "run" = @{
-            "last" = $null;
+        'id' = '';
+        'name' = '';
+        'status' = 'none';
+        'duration' = 0;
+        'run' = @{
+            'last' = $null;
         };
     }
 }
 
 function Get-JobObject {
     return @{
-        "id" = "";
-        "name" = "";
-        "description" = "";
-        "created" = [DateTime]::Now.ToString();
-        "updated" = [DateTime]::Now.ToString();
-        "type" = "";
-        "status" = "none";
-        "duration" = 0;
-        "grapefile" = "";
-        "repo" = @{
-            "url" = "";
-            "branch" = "";
+        'id' = '';
+        'name' = '';
+        'description' = '';
+        'created' = [DateTime]::Now.ToString();
+        'updated' = [DateTime]::Now.ToString();
+        'type' = '';
+        'status' = 'none';
+        'duration' = 0;
+        'grapefile' = '';
+        'repo' = @{
+            'type' = '';
+            'multi' = $false;
+            'url' = '';
+            'branch' = '';
         };
-        "run" = @{
-            "schedule" = "";
-            "last" = $null;
-            "next" = $null;
+        'dir' = @{
+            'path' = '';
+        }
+        'run' = @{
+            'parallel' = $false;
+            'schedule' = '';
+            'last' = $null;
+            'next' = $null;
         };
     }
 }
@@ -50,7 +55,6 @@ function Get-JobOverviewFile {
 
 function Set-JobOverviewFile {
     param (
-        [Parameter(Mandatory=$true)]
         [ValidateNotNull()]
         $jobs
     )
@@ -61,9 +65,9 @@ function Set-JobOverviewFile {
 
 function Get-JobFile {
     param (
-        [Parameter(Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
-        [string] $id
+        [string]
+        $id
     )
 
     try {
@@ -77,7 +81,6 @@ function Get-JobFile {
 
 function Set-JobFile {
     param (
-        [Parameter(Mandatory=$true)]
         [ValidateNotNull()]
         $job
     )
@@ -86,37 +89,74 @@ function Set-JobFile {
     $job | ConvertTo-Json -Depth 10 -Compress | Out-File -FilePath $path -Encoding utf8 -Force | Out-Null
 }
 
-function New-JobConfig {
+function Test-JobConfig {
     param (
-        [Parameter(Mandatory=$true)]
-        [ValidateNotNullOrEmpty()]
-        [string] $name,
-
-        [string] $description
+        $config
     )
 
+    # ensure we have some config settings
+    if (Test-Empty $config) {
+        throw 'No job configuration supplied'
+    }
+
+    # do we have a job name?
+    if (Test-Empty $config.name) {
+        throw 'No job name supplied'
+    }
+
+    # ensure the job type if right
+    $types = @('scm', 'dir')
+    if ($types -inotcontains $config.type) {
+        throw "Invalid job type supplied, valid values: $($types -join ', ')"
+    }
+
+    # check the settings for the job type
+    switch ($config.type.ToLowerInvariant()) {
+        'dir' {
+            if (Test-Empty $config.dir) {
+                throw 'No directory configuration supplied for job'
+            }
+
+            if (Test-Empty $config.dir.path) {
+                throw 'No directory path supplied for job'
+            }
+        }
+
+        'scm' {
+
+        }
+    }
+}
+
+function New-JobConfig {
+    param (
+        $config
+    )
+
+    Test-JobConfig $config
     $json = Get-JobOverviewFile
 
     # ensure job with name doesn't exist
-    if (($json.jobs | Where-Object { $_.name } | Measure-Object).Count -ne 0) {
-        throw "There is already a job called '$($name)'"
+    if (($json.jobs | Where-Object { $_.name -ieq $config.name } | Measure-Object).Count -ne 0) {
+        throw "There is already a job called '$($config.name)'"
     }
 
-    # generate a new jobId - bit hacky, but hey ¯\_(ツ)_/¯
-    $id = ([Guid]::NewGuid().ToString() -split '-')[0]
+    # generate a new jobId
+    $id = Get-Id
 
     # create a new job overview, to help page/rest loading
     $overview = Get-JobOverviewObject
     $overview.id = $id
-    $overview.name = $name
-    $overview.type = 'single'
+    $overview.name = $config.name
 
     # create a new job object with the main job config
     $job = Get-JobObject
     $job.id = $id
-    $job.name = $name
-    $job.description = $description
-    $job.type = 'single'
+    $job.name = $config.name
+    $job.description = $config.description
+    $job.type = $config.type
+    $job.grapefile = $config.grapefile
+    $job.dir = $config.dir
 
     try {
         # create the job directory - using the jobId

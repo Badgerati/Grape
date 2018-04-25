@@ -77,6 +77,8 @@ DIRECTORY STRUCTURE
                     /<branchId>/<runId> (all multi-branch jobs are parallel so all split by runId)
           ??/workspaces.json
 
+./queue/queue.json
+
 
 
 OBJECTS
@@ -88,7 +90,6 @@ OBJECTS
     {
         "id": "<jobId>",
         "name": "core website",
-        "type": "single", // or multi
         "status": "success", // or queued, running, failed, disabled, aborted, or none
         "duration": "<milliseconds>",
         "run": {
@@ -107,15 +108,21 @@ OBJECTS
     "description": "",
     "created": "",
     "updated": "",
-    "type": "single",
+    "type": "scm", // scm for git/svn, or dir for copying a directory
     "status": "success",
     "duration": "<milliseconds>",
     "grapefile": "", // path to file, or blank for ./Grapefile default
     "repo": {
+        "type": "git",
+        "multi": false,
         "url": "",
         "branch": "", // if type is multi, this is empty
     },
+    "dir": {
+        "path": ""
+    },
     "run": {
+        "parallel": false,
         "schedule": "", // cronjob format, or empty if no schedule
         "last": "2018-04-24 19:27:02.000",
         "next": "2018-04-24 19:28:02.000"
@@ -137,6 +144,29 @@ OBJECTS
 ]
 ```
 
+-- "config.json" for a run
+
+```json
+{
+
+}
+```
+
+-- "queue.json"
+
+```json
+"queue": [
+    {
+        "jobId": "",
+        "runId": "",
+        "running": false,
+        "run": {
+            "queued": "<date/time queued>",
+            "started": "<date/time started>"
+        }
+    }
+]
+```
 
 
 NOTES
