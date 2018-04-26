@@ -98,6 +98,22 @@ route put '/api/jobs/:jobId' {
 route post '/api/jobs/:jobId/runs' {
     param($session)
     $jobId = $session.Parameters['jobId']
+    $schedule = (?? $session.Data['schedule'] '')
 
-    # validate job, and then add to queue
+    $result = @{
+        'error' = $null;
+        'run' = @{};
+    }
+
+    try {
+        # validate job the job actually exists
+        Test-JobId $jobId
+
+        # schedule the job to run
+        Start-Job $jobId $schedule
+    }
+    catch {
+        $result.error = $_.Exception.Message
+        Write-JsonResponse -Value $result
+    }
 }

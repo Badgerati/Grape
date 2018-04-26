@@ -10,17 +10,21 @@ function Get-JobOverviewObject {
         'duration' = 0;
         'run' = @{
             'last' = $null;
+            'next' = $null;
+            'runId' = 0;
         };
     }
 }
 
 function Get-JobObject {
+    $date = Get-UtcDate
+
     return @{
         'id' = '';
         'name' = '';
         'description' = '';
-        'created' = [DateTime]::Now.ToString();
-        'updated' = [DateTime]::Now.ToString();
+        'created' = $date;
+        'updated' = $date;
         'type' = '';
         'status' = 'none';
         'duration' = 0;
@@ -39,6 +43,7 @@ function Get-JobObject {
             'schedule' = '';
             'last' = $null;
             'next' = $null;
+            'nextRunId' = 1;
         };
     }
 }
@@ -46,7 +51,7 @@ function Get-JobObject {
 function Get-JobOverviewFile {
     try {
         $path = Join-Path (Get-JobsPath) 'jobs.json'
-        return (Get-Content $path -Force -ErrorAction Stop | ConvertFrom-Json)
+        $jobs = (Get-Content $path -Force -ErrorAction Stop | ConvertFrom-Json)
     }
     catch {
         return @{ 'jobs' = @(); }
@@ -87,6 +92,22 @@ function Set-JobFile {
 
     $path = Join-Path (Join-Path (Get-JobsPath) $job.id) 'config.json'
     $job | ConvertTo-Json -Depth 10 -Compress | Out-File -FilePath $path -Encoding utf8 -Force | Out-Null
+}
+
+function Test-JobId {
+    param (
+        [string]
+        $jobId
+    )
+
+    if (Test-Empty $jobId) {
+        throw 'No jobId has been supplied'
+    }
+
+    $path = Join-Path (Join-Path (Get-JobsPath) $job.id) 'config.json'
+    if (!(Test-Path $path)) {
+        throw "The jobId '$($jobId)' does not exist"
+    }
 }
 
 function Test-JobConfig {
@@ -172,7 +193,62 @@ function New-JobConfig {
         if (Test-Path $path) {
             Remove-Item -Path $path -Recurse -Force | Out-Null
         }
+
+        throw
     }
 
     return $job
+}
+
+function Start-Job {
+    param (
+        [string]
+        $jobId,
+
+        [string]
+        $schedule
+    )
+
+    # get the job and overview
+    $job = Get-JobFile $jobId
+    $overview = Get-JobOverviewFile
+    $jobOverview = ($overview.jobs | Where-Object { $_.id -ieq $jobId })
+
+    # use the passed schedule, or now
+    $schedule = (?? $schedule (Get-UtcDate))
+
+    # can the schedule be parsed as a date?
+    if (!(Test-Date $schedule)) {
+        throw "Schedule date is of an invalid format: $($schedule)"
+    }
+
+    try {
+        # setup new run for job
+        $runId = $job.run.nextRunId++
+        $job.status = 'queued'
+
+        $jobOverview.status = 'queued'
+        $jobOverview.run.runId = $runId
+
+        # create dir/config for run
+
+        # save run settings to job
+        Set-JobFile $job
+        Set-JobOverviewFile $overview
+    }
+    catch {
+        # check if the run dir exists, and delete and reset nextRunId
+    }
+
+    try {
+        # add to queue
+        $queue = Get-QueueJobObject
+        $queue.jobId = $jobId
+        $queue.runId = ''
+        $queue.run.schedule = $schedule
+        Push-ToQueue $queue
+    }
+    catch {
+        # do we need to remove it from queue?
+    }
 }

@@ -91,9 +91,11 @@ OBJECTS
         "id": "<jobId>",
         "name": "core website",
         "status": "success", // or queued, running, failed, disabled, aborted, or none
-        "duration": "<milliseconds>",
+        "duration": "<milliseconds>", // average duration
         "run": {
-            "last": "2018-04-24 19:27:02.000"
+            "last": "2018-04-24 19:27:02.000",
+            "next": "",
+            "runId": 0
         }
     }
 ]
@@ -110,7 +112,7 @@ OBJECTS
     "updated": "",
     "type": "scm", // scm for git/svn, or dir for copying a directory
     "status": "success",
-    "duration": "<milliseconds>",
+    "duration": "<milliseconds>", // average
     "grapefile": "", // path to file, or blank for ./Grapefile default
     "repo": {
         "type": "git",
@@ -125,7 +127,8 @@ OBJECTS
         "parallel": false,
         "schedule": "", // cronjob format, or empty if no schedule
         "last": "2018-04-24 19:27:02.000",
-        "next": "2018-04-24 19:28:02.000"
+        "next": "2018-04-24 19:28:02.000",
+        "nextRunId": 1
     }
 }
 ```
@@ -136,8 +139,7 @@ OBJECTS
 "runs": [
     {
         "id": 1,
-        "start": "<date>",
-        "end": "<date>",
+        "name": "",
         "duration": "<milliseconds>",
         "status": "success"
     }
@@ -148,7 +150,14 @@ OBJECTS
 
 ```json
 {
-
+    "id": 1,
+    "name": "",
+    "description": "",
+    "created": "",
+    "start": "<date>",
+    "end": "<date>",
+    "duration": "<milliseconds>",
+    "status": "success"
 }
 ```
 
@@ -161,6 +170,7 @@ OBJECTS
         "runId": "",
         "running": false,
         "run": {
+            "scheduled": "",
             "queued": "<date/time queued>",
             "started": "<date/time started>"
         }

@@ -58,3 +58,33 @@ function Test-Empty {
 
     return ([string]::IsNullOrWhiteSpace($Value) -or ($Value | Measure-Object).Count -eq 0 -or $Value.Count -eq 0)
 }
+
+function Get-UtcDate {
+    return [DateTime]::UtcNow.ToString('yyyy-MM-dd HH:mm:ss')
+}
+
+function ConvertTo-Date {
+    param (
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $date
+    )
+
+    return [DateTime]::Parse($date)
+}
+
+function Test-Date {
+    param (
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $date
+    )
+
+    try {
+        ConvertTo-Date $date | Out-Null
+        return $true
+    }
+    catch {
+        return $false
+    }
+}
