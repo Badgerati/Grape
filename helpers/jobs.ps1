@@ -1,5 +1,32 @@
 function Get-JobsPath {
-    return './jobs/'
+    param (
+        [string]
+        $jobId,
+
+        [switch]
+        $overview,
+
+        [switch]
+        $config
+    )
+
+    $base = './jobs/'
+
+    if (!(Test-Empty $jobId)) {
+        $base = Join-Path $base $jobId
+
+        if ($config) {
+            $base = Join-Path $base 'config.json'
+        }
+    }
+    else {
+        if ($overview) {
+            $base = Join-Path $base 'jobs.json'
+        }
+    }
+
+    return $base
+
 }
 
 function Get-JobOverviewObject {
@@ -11,7 +38,7 @@ function Get-JobOverviewObject {
         'run' = @{
             'last' = $null;
             'next' = $null;
-            'runId' = 0;
+            'lastRunId' = 0;
         };
     }
 }
@@ -39,6 +66,7 @@ function Get-JobObject {
             'path' = '';
         }
         'run' = @{
+            'max' = 0;
             'parallel' = $false;
             'schedule' = '';
             'last' = $null;
@@ -50,8 +78,8 @@ function Get-JobObject {
 
 function Get-JobOverviewFile {
     try {
-        $path = Join-Path (Get-JobsPath) 'jobs.json'
-        $jobs = (Get-Content $path -Force -ErrorAction Stop | ConvertFrom-Json)
+        $path = Get-JobsPath -overview
+        return (Get-Content $path -Force -ErrorAction Stop | ConvertFrom-Json)
     }
     catch {
         return @{ 'jobs' = @(); }
@@ -64,7 +92,7 @@ function Set-JobOverviewFile {
         $jobs
     )
 
-    $path = Join-Path (Get-JobsPath) 'jobs.json'
+    $path = Get-JobsPath -overview
     $jobs | ConvertTo-Json -Depth 10 -Compress | Out-File -FilePath $path -Encoding utf8 -Force | Out-Null
 }
 
@@ -72,11 +100,11 @@ function Get-JobFile {
     param (
         [ValidateNotNullOrEmpty()]
         [string]
-        $id
+        $jobId
     )
 
     try {
-        $path = Join-Path (Join-Path (Get-JobsPath) $id) 'config.json'
+        $path = Get-JobsPath $jobId -config
         return (Get-Content $path -Force -ErrorAction Stop | ConvertFrom-Json)
     }
     catch {
@@ -90,7 +118,7 @@ function Set-JobFile {
         $job
     )
 
-    $path = Join-Path (Join-Path (Get-JobsPath) $job.id) 'config.json'
+    $path = Get-JobsPath $job.id -config
     $job | ConvertTo-Json -Depth 10 -Compress | Out-File -FilePath $path -Encoding utf8 -Force | Out-Null
 }
 
@@ -104,7 +132,7 @@ function Test-JobId {
         throw 'No jobId has been supplied'
     }
 
-    $path = Join-Path (Join-Path (Get-JobsPath) $job.id) 'config.json'
+    $path = Get-JobsPath $jobId -config
     if (!(Test-Path $path)) {
         throw "The jobId '$($jobId)' does not exist"
     }
@@ -147,6 +175,13 @@ function Test-JobConfig {
 
         }
     }
+
+    # check run meta logic
+    if (!(Test-Empty $config.run)) {
+        if ($config.run.max -ne $null -and $config.run.max -lt 0) {
+            throw 'Invalid value for max number of runs to keep supplied, should be 0 or greater'
+        }
+    }
 }
 
 function New-JobConfig {
@@ -163,25 +198,29 @@ function New-JobConfig {
     }
 
     # generate a new jobId
-    $id = Get-Id
+    $jobId = Get-Id
 
     # create a new job overview, to help page/rest loading
     $overview = Get-JobOverviewObject
-    $overview.id = $id
+    $overview.id = $jobId
     $overview.name = $config.name
 
     # create a new job object with the main job config
     $job = Get-JobObject
-    $job.id = $id
+    $job.id = $jobId
     $job.name = $config.name
     $job.description = $config.description
     $job.type = $config.type
     $job.grapefile = $config.grapefile
     $job.dir = $config.dir
 
+    if (!(Test-Empty $config.run)) {
+        $job.run.max = (?? $config.run.max 0)
+    }
+
     try {
-        # create the job directory - using the jobId
-        $path = Join-Path (Get-JobsPath) $id
+        # create the job directory
+        $path = Get-JobsPath $jobId
         New-Item -Path $path -ItemType Directory -Force | Out-Null
 
         # save the overview/job configs
@@ -206,7 +245,13 @@ function Start-Job {
         $jobId,
 
         [string]
-        $schedule
+        $schedule,
+
+        [string]
+        $name,
+
+        [string]
+        $description
     )
 
     # get the job and overview
@@ -222,33 +267,52 @@ function Start-Job {
         throw "Schedule date is of an invalid format: $($schedule)"
     }
 
+    # setup new run for job
     try {
-        # setup new run for job
         $runId = $job.run.nextRunId++
+        $jobStatus = $job.status
+        $overStatus = $jobOverview.status
+
         $job.status = 'queued'
+        $job.updated = Get-UtcDate
 
         $jobOverview.status = 'queued'
-        $jobOverview.run.runId = $runId
-
-        # create dir/config for run
+        $jobOverview.run.lastRunId = $runId
 
         # save run settings to job
         Set-JobFile $job
         Set-JobOverviewFile $overview
+
+        # create dir/config for run
+        New-RunConfig $jobId $runId $name $description $schedule | Out-Null
     }
     catch {
-        # check if the run dir exists, and delete and reset nextRunId
+        # attempt to reset run
+        $job.run.nextRunId--
+        $job.status = $jobStatus
+        $jobOverview.status = $overStatus
+        $jobOverview.run.lastRunId--
+
+        Set-JobFile $job
+        Set-JobOverviewFile $overview
+
+        # NEED REMOVE-JOB/-RUN FUNCTIONS
+
+        throw
     }
 
     try {
-        # add to queue
-        $queue = Get-QueueJobObject
-        $queue.jobId = $jobId
-        $queue.runId = ''
-        $queue.run.schedule = $schedule
-        Push-ToQueue $queue
+        # add run to queue
+        $run = Get-QueueRunObject
+        $run.jobId = $jobId
+        $run.runId = $runId
+        $run.run.scheduled = $schedule
+        Push-RunToQueue $run -pending
     }
     catch {
-        # do we need to remove it from queue?
+        Pop-RunFromQueue $run -pending
+        throw
     }
+
+    return $run
 }

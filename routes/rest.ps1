@@ -1,6 +1,9 @@
 # get list of all jobs
 route get '/api/jobs' {
     param($session)
+    $limit = [int](?? $session.Query['limit'] '-1')
+    $name = (?? $session.Query['name'] '')
+    $match = [Convert]::ToBoolean((?? $session.Query['match'] $true))
 
     $result = @{
         'error' = $null;
@@ -15,9 +18,17 @@ route get '/api/jobs' {
 
         # if it's not empty, sort by name and limit results if supplied
         if ($count -gt 0) {
+            if (!(Test-Empty $name)) {
+                if ($match) {
+                    $jobs = $jobs | Where-Object { $_.name -ieq $name }
+                }
+                else {
+                    $jobs = $jobs | Where-Object { $_.name -imatch $name }
+                }
+            }
+
             $jobs = $jobs | Sort-Object name
 
-            $limit = [int](?? $session.Query['limit'] '-1')
             if ($limit -gt -1) {
                 $jobs = $jobs | Select-Object -First $limit
             }
@@ -98,7 +109,9 @@ route put '/api/jobs/:jobId' {
 route post '/api/jobs/:jobId/runs' {
     param($session)
     $jobId = $session.Parameters['jobId']
-    $schedule = (?? $session.Data['schedule'] '')
+    $name = (?? $session.Data.name '')
+    $description = (?? $session.Data.description '')
+    $schedule = (?? $session.Data.schedule '')
 
     $result = @{
         'error' = $null;
@@ -110,7 +123,48 @@ route post '/api/jobs/:jobId/runs' {
         Test-JobId $jobId
 
         # schedule the job to run
-        Start-Job $jobId $schedule
+        $run = Start-Job $jobId $schedule $name $description
+        $result.run = $run
+        Write-JsonResponse -Value $result
+    }
+    catch {
+        $result.error = $_.Exception.Message
+        Write-JsonResponse -Value $result
+    }
+}
+
+# return items from the queue type (pending/running)
+route get '/api/queue/:type' {
+    param($session)
+    $type = $session.Parameters['type']
+
+    $result = @{
+        'error' = $null;
+        'count' = 0;
+        'queue' = @();
+    }
+
+    try {
+        # get the queue config
+        switch ($type.ToLowerInvariant()) {
+            'pending' {
+                $queue = (Get-QueueFile -pending).queue
+            }
+
+            'running' {
+                $queue = (Get-QueueFile -running).queue
+            }
+
+            default {
+                throw 'Incorrect queue type passed, should be either pending or running'
+            }
+        }
+
+        $result.queue = $queue
+        $result.count = ($queue | Measure-Object).Count
+
+        # write job back
+        Write-JsonResponse -Value $result
     }
     catch {
         $result.error = $_.Exception.Message
